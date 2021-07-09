@@ -6,6 +6,8 @@ import { Chartjs } from "./Chartjs";
 export function BasicChart() {
     const [width, setWidth] = useState(600);
     const [end, setEnd] = useState(100);
+    const [parseData, setParseData] = useState(false);
+    const [animation, setAnimation] = useState(true);
 
     // useEffect(() => {
     //     document.getElementById("resize").style.width = width + "px";
@@ -13,13 +15,12 @@ export function BasicChart() {
     // }, [width])
 
     const pointsOptionButtons = [50, 100, 200, 500, 1000, 1500].map(num => {
-        return <button style={{margin: 10}} onClick={() => setEnd(num)} key={`point-option-${num}`}>{num}</button>
+        return <button style={{margin: 10}} onClick={() => setEnd(num)} key={`point-option-${num}`} disabled={num === end}>{num}</button>
     })
 
     const data = {
-        labels: new Array(end).fill(" "),
+        labels: [...new Array(end).keys()],
         datasets: [{
-            label: "# of Votes",
             data: array1500.slice(0, end),
             backgroundColor: [
                 'rgba(255, 99, 132, 0.2)',
@@ -42,12 +43,37 @@ export function BasicChart() {
         }]
     };
 
+    const options = {
+        // spanGaps: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+
+    if (!animation) {
+        options.animation = false;
+    }
+
+    if (parseData) {
+        delete data.labels;
+        data.datasets[0].data = data.datasets[0].data.map((value, index) => ({x: index.toString(), y: value}));
+        data.datasets[0].parsing = {yAxisKey: "y"};
+        options.parsing = false;
+        console.log("data parsed")
+    }
+
     return (
         <div>
             <h1>Basic Chartjs</h1>
             <h2>Bar Chart</h2>
             <div>
                 Points: {pointsOptionButtons}
+            </div>
+            <div>
+                <input type="checkbox" value={parseData} onChange={e => setParseData(e.target.checked)}/> Parse Data 
+                <input type="checkbox" value={animation} onChange={e => setAnimation(e.target.checked)} defaultChecked={animation}/> Animation
             </div>
             <input type="range" min={100} max={3000} step={10} value={width}
                 onChange={e => setWidth(e.target.value)} /><br/>
@@ -67,17 +93,7 @@ export function BasicChart() {
                 <Chartjs 
                     type="bar"
                     data={data}
-                    options={{
-                        // spanGaps: true,
-                        animation: {
-                            duration: 0
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }}
+                    options={options}
 
                 />
             </div>
